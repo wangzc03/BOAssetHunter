@@ -1,0 +1,9 @@
+sentence-transformers
+
+torch
+
+numpy
+
+# sqlite3
+
+# no uv no poetry.
