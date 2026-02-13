@@ -4,6 +4,10 @@ torch
 
 numpy
 
+fastapi
+
+uvicorn
+
 # sqlite3
 
 # no uv no poetry.

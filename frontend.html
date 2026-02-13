@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BO Asset Hunter</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        body { font-family: 'Segoe UI', system-ui; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        /* 搜索栏 */
+        .search-box { display: flex; gap: 10px; background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        input, select { border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; outline: none; }
+        input[type="text"] { flex-grow: 1; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+
+        /* 结果列表 */
+        .results { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .item { background: var(--card); padding: 15px; border-radius: 8px; border-left: 4px solid #cbd5e1; transition: transform 0.2s; }
+        .item:hover { transform: translateX(5px); border-left-color: var(--primary); }
+        .item-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .asset-type { font-size: 12px; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .package-name { font-size: 13px; color: #64748b; }
+        .asset-name { font-size: 18px; font-weight: 600; color: #0f172a; word-break: break-all; }
+        .score { color: #10b981; font-size: 12px; }
+
+        /* 中英文切换按钮 */
+        .lang-btn { background: #e2e8f0; color: var(--text); padding: 5px 10px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="header">
+            <h2>{{ t.title }}</h2>
+            <button @click="toggleLang" class="lang-btn">{{ lang === 'zh' ? 'English' : '中文' }}</button>
+        </div>
+
+        <div class="search-box">
+            <input type="text" v-model="query" :placeholder="t.placeholder" @keyup.enter="doSearch">
+            <select v-model="filterType">
+                <option value="">{{ t.allTypes }}</option>
+                <option value="StaticMesh">StaticMesh</option>
+                <option value="Material">Material</option>
+                <option value="MaterialInstanceConstant">MIC</option>
+            </select>
+            <button @click="doSearch">{{ t.searchBtn }}</button>
+        </div>
+
+        <div v-if="loading" style="text-align: center; margin: 20px;">Searching...</div>
+
+        <div class="results">
+            <div v-for="res in results" :key="res.name" class="item">
+                <div class="item-header">
+                    <span class="asset-type">{{ res.type }}</span>
+                    <span class="score">Score: {{ res.score.toFixed(2) }}</span>
+                </div>
+                <div class="asset-name">{{ res.name }}</div>
+                <div class="package-name">{{ t.pkgLabel }}: {{ res.package }}</div>
+            </div>
+            <div v-if="results.length === 0 && !loading" style="color: #94a3b8; text-align: center; margin-top: 40px;">
+                {{ t.noResults }}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        const i18n = {
+            zh: {
+                title: 'BO 资产搜索',
+                placeholder: '输入描述，如：损坏的沙发...',
+                searchBtn: '搜索',
+                allTypes: '所有类型',
+                pkgLabel: '所属包',
+                noResults: '没有找到匹配的资产',
+            },
+            en: {
+                title: 'BO Asset Hunter',
+                placeholder: 'Type description, e.g., broken sofa...',
+                searchBtn: 'Search',
+                allTypes: 'All Types',
+                pkgLabel: 'Package',
+                noResults: 'No assets found',
+            }
+        };
+
+        createApp({
+            setup() {
+                const lang = ref('zh');
+                const query = ref('');
+                const filterType = ref('');
+                const results = ref([]);
+                const loading = ref(false);
+
+                const t = computed(() => i18n[lang.value]);
+
+                const toggleLang = () => {
+                    lang.value = lang.value === 'zh' ? 'en' : 'zh';
+                };
+
+                const doSearch = async () => {
+                    if (!query.value) return;
+                    loading.value = true;
+                    try {
+                        const url = new URL('http://127.0.0.1:8000/search');
+                        url.searchParams.append('q', query.value);
+                        if (filterType.value) url.searchParams.append('type', filterType.value);
+
+                        const response = await fetch(url);
+                        results.value = await response.json();
+                    } catch (e) {
+                        alert('Error: Make sure the FastAPI backend is running!');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                return { lang, t, query, filterType, results, loading, toggleLang, doSearch };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

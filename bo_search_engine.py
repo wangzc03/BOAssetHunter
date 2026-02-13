@@ -121,7 +121,7 @@ if __name__ == "__main__":
     engine = BOSearchEngine()
 
     # 如果是第一次运行，或者数据库更新了，取消下面这一行的注释
-    engine.build_index()
+    # engine.build_index()
 
     while True:
         print("\n" + "=" * 50)
