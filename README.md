@@ -9,3 +9,11 @@ This is an RS2/RO2/BO asset finder based on AI-Embedding. You simply input what 
 # 向量化 (Embedding): 文本清洗 -> 多语言模型 -> 向量库
 
 # 查询 (Query): 用户中文输入 -> 向量化 -> 匹配最接近的资产
+
+
+
+# UE VIEWRER
+https://www.gildor.org/en/projects/umodel
+
+# sqllite gui
+https://sqlitebrowser.org/dl/
